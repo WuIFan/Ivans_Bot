@@ -1,0 +1,10 @@
+
+.DS_Store
+
+.vscode/
+
+cmds/__pycache__/
+
+*.pyc
+
+setting.json
