@@ -13,6 +13,22 @@ async def on_ready():
     print ('== Bot is online ==')
 
 
+@bot.command()
+async def load(ctx, extension):
+    bot.load_extension(f'cmds.{extension}')
+    await ctx.send(f'Load {extension} Successfully')
+
+
+@bot.command()
+async def unload(ctx, extension):
+    bot.unload_extension(f'cmds.{extension}')
+    await ctx.send(f'Unload {extension} Successfully')
+
+@bot.command()
+async def reload(ctx, extension):
+    bot.reload_extension(f'cmds.{extension}')
+    await ctx.send(f'Reload {extension} Successfully')
+
 for file in os.listdir('./cmds'):
     if file.endswith('.py'):
         bot.load_extension(f'cmds.{file[:-3]}')
