@@ -11,6 +11,13 @@ class LeetCode(Cog_Bot):
     emoji = [':ballot_box_with_check:',':arrow_upper_right:',':chart_with_upwards_trend:',':bar_chart:',':white_check_mark:',':writing_hand:']
     rating_emoji = [':thumbsdown:',':punch:',':thumbsup:']
     prefer = ['Finished Contests','Rating','Global Ranking','Solved Question','Accepted Submission','Acceptance Rate']
+    cmds = ['lcping','lcget [Account]']
+    @commands.command()
+    async def leetcode(self, ctx):
+        cmd_lsit = 'Commands:\n'
+        for i in range(0,len(self.cmds)):
+            cmd_lsit += f'{str(i+1)}. {self.cmds[i]}\n'
+        await ctx.channel.send(f'{cmd_lsit}')
     @commands.command()
     async def lcping(self, ctx):
         await ctx.channel.send(f'{round(self.bot.latency*1000)}(ms)')

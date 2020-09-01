@@ -27,7 +27,7 @@ async def unload(ctx, extension):
 @bot.command()
 async def reload(ctx, extension):
     bot.reload_extension(f'cmds.{extension}')
-    await ctx.send(f'Reload {extension} Successfully')
+    await ctx.send(f'Reload {extension} Successfully. Use command "={extension}" to get list of commands')
 
 for file in os.listdir('./cmds'):
     if file.endswith('.py'):
