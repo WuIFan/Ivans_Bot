@@ -4,6 +4,8 @@ from core.bot import Cog_Bot
 
 import requests
 import re
+import json
+import datetime
 from bs4 import BeautifulSoup
 from ast import literal_eval
 
@@ -59,7 +61,25 @@ class LeetCode(Cog_Bot):
                 else:
                     output += f'{self.emoji[self.prefer.index(da[0])]} {da[0]} : {da[1]}\n'
         await ctx.channel.send(f'{output}')
-
-# print(data)
+    @commands.command()
+    async def lccontest(self,ctx):
+        await ctx.channel.send(':pencil: Check contest in this week...')
+        web = 'https://leetcode.com/graphql'
+        data = {"query":"{\n currentTimestamp\n  allContests {\n containsPremium \n title \n startTime}}"}
+        #{\n    containsPremium\n    title\n    cardImg\n    titleSlug\n    description\n    startTime\n    duration\n    originStartTime\n    isVirtual\n    company {\n      watermark\n      __typename\n    }\n    __typename\n  }\n}\n"
+        result = requests.post(web,json=data)
+        json_result = json.loads(result.text)
+        # print(json_result)
+        contest_card = ''
+        cur_time = json_result['data']['currentTimestamp']
+        for contest in json_result['data']['allContests']:
+            if contest['startTime'] < cur_time:
+                break
+            else:
+                start = datetime.datetime.fromtimestamp(contest['startTime']).isoformat()
+                title = contest['title']
+                delta = datetime.timedelta(seconds=contest['startTime'] - cur_time)
+                contest_card += f'```{title}\nStarts at {start}\nStarts in {delta}\n```'
+        await ctx.channel.send(contest_card)
 def setup(bot):
     bot.add_cog(LeetCode(bot))
