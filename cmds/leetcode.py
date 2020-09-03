@@ -13,7 +13,8 @@ class LeetCode(Cog_Bot):
     emoji = [':ballot_box_with_check:',':arrow_upper_right:',':chart_with_upwards_trend:',':bar_chart:',':white_check_mark:',':writing_hand:']
     rating_emoji = [':thumbsdown:',':punch:',':thumbsup:']
     prefer = ['Finished Contests','Rating','Global Ranking','Solved Question','Accepted Submission','Acceptance Rate']
-    cmds = ['lcping','lcget [Account]']
+    cmds = ['lcping','lcget [Account]','lccontest']
+    # difficulty_format = ['easy','medium','hard']
     @commands.command()
     async def leetcode(self, ctx):
         cmd_lsit = 'Commands:\n'
@@ -35,6 +36,8 @@ class LeetCode(Cog_Bot):
     @commands.command()
     async def lcget(self, ctx, account):
         web = 'https://leetcode.com/' + account
+        if not account:
+            await ctx.channel.send(f'Missing [Account] Arg.')
         r = requests.get(web)
         print(r.status_code)
         await ctx.channel.send(f'status: {r.status_code}')
@@ -51,7 +54,7 @@ class LeetCode(Cog_Bot):
                 else:
                     d += text
             data.append([t.rstrip(),d])
-        output = ''
+        output = f':sunglasses:Account : {account}\n'
         for da in data:
             if da[0] in self.prefer:
                 print(da)
@@ -81,5 +84,35 @@ class LeetCode(Cog_Bot):
                 delta = datetime.timedelta(seconds=contest['startTime'] - cur_time)
                 contest_card += f'```{title}\nStarts at {start}\nStarts in {delta}\n```'
         await ctx.channel.send(contest_card)
+    def pick(self):
+        web = 'https://leetcode.com/problems/random-one-question/all'
+        result = requests.get(web)
+        print(datetime.datetime.now())
+        question_name = result.url.split('/')[-2]
+        lcapi = 'https://leetcode.com/graphql'
+        data = {"operationName":"questionData","variables":{"titleSlug":question_name},"query":"query questionData($titleSlug: String!) {\n  question(titleSlug: $titleSlug) {\n questionId\n  title\n  isPaidOnly\n difficulty\n likes\n dislikes\n similarQuestions\n}\n}\n"}
+        r = requests.post(lcapi,json=data)
+        print(datetime.datetime.now())
+        json_result = json.loads(r.text)
+        question = json_result['data']['question']
+        return result.url, question
+    @commands.command()
+    async def lcpick(self, ctx):
+        print(datetime.datetime.now())
+        await ctx.channel.send('Pick One Random Question...')
+        url, question = self.pick()
+        '''
+        if difficulty.lower() in self.difficulty_format:
+            while question["difficulty"].lower() != difficulty.lower():
+                await ctx.channel.send(f'Because you don\'t like {question["difficulty"]} problem, pick another one random question...')
+                url, question = self.pick()
+        '''
+        question_card = f':scroll: Title : {question["questionId"]}. {question["title"]}\n'\
+                        f':trophy: Difficulty : {question["difficulty"]}\n'\
+                        f':slight_smile: Likes : {question["likes"]}\n'\
+                        f':upside_down: Dislikes : {question["dislikes"]}\n'\
+                        f':link: Url : {url}'
+        await ctx.channel.send(question_card)
+        
 def setup(bot):
     bot.add_cog(LeetCode(bot))
