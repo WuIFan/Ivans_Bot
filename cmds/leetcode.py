@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 from ast import literal_eval
 
 class LeetCode(Cog_Bot):
-    emoji = [':ballot_box_with_check:',':arrow_upper_right:',':chart_with_upwards_trend:',':bar_chart:',':white_check_mark:',':writing_hand:']
+    solved_emoji = [':pencil:',':motor_scooter:',':blue_car:',':rocket:']
     rating_emoji = [':thumbsdown:',':punch:',':thumbsup:']
     prefer = ['Finished Contests','Rating','Global Ranking','Solved Question','Accepted Submission','Acceptance Rate']
     cmds = ['lcping','lcget [Account]','lccontest']
@@ -33,43 +33,33 @@ class LeetCode(Cog_Bot):
         except Exception as e:
             print(e)
             return 0
+    async def getProfile(self,account):
+        web = 'https://leetcode.com/graphql'
+        query = "query getUserProfile($username: String!) { allQuestionsCount{difficulty   count} matchedUser(username: $username) { submitStats { acSubmissionNum {  difficulty   count  submissions }}}}"
+        data = {"operationName":"getUserProfile","variables":{"username":"denny91002"},"query":query}        
+        result = requests.post(web,json=data)
+        json_result = json.loads(result.text)
+        return json_result
     @commands.command()
     async def lcget(self, ctx, account):
-        web = 'https://leetcode.com/' + account
         if not account:
             await ctx.channel.send(f'Missing [Account] Arg.')
-        r = requests.get(web)
-        print(r.status_code)
-        await ctx.channel.send(f'status: {r.status_code}')
-        soup = BeautifulSoup(r.text, 'lxml')
-        rating_variation = self.checkRating(soup)
-        progesses = soup.find_all('li',class_="list-group-item")
-        data = []
-        for pro in progesses:
-            texts = pro.text.split()
-            d,t = '',''
-            for text in texts:
-                if text[0].isalpha():
-                    t += text + ' '
-                else:
-                    d += text
-            data.append([t.rstrip(),d])
         output = f':sunglasses:Account : {account}\n'
-        for da in data:
-            if da[0] in self.prefer:
-                print(da)
-                if da[0] == 'Rating':
-                    r_emoji = 2 if rating_variation > 0 else 0 if rating_variation < 0 else 1
-                    output += f'{self.emoji[self.prefer.index(da[0])]} {da[0]} : {da[1]}({rating_variation}{self.rating_emoji[r_emoji]})\n'
-                else:
-                    output += f'{self.emoji[self.prefer.index(da[0])]} {da[0]} : {da[1]}\n'
+        profile = await self.getProfile(account)
+        solved = profile['data']['matchedUser']['submitStats']['acSubmissionNum']
+        total = profile['data']['allQuestionsCount']
+        for i in range(len(solved)):
+            if solved[i]['difficulty'] == 'All':
+                output += f'{self.solved_emoji[i]}Solved Qusetions : {solved[i]["count"]}/{total[i]["count"]}\n'
+            else:
+                output += f'{self.solved_emoji[i]}{solved[i]["difficulty"]} : {solved[i]["count"]}/{total[i]["count"]}\n'
         await ctx.channel.send(f'{output}')
     @commands.command()
     async def lccontest(self,ctx):
         await ctx.channel.send(':pencil: Check contest in this week...')
         web = 'https://leetcode.com/graphql'
         data = {"query":"{\n currentTimestamp\n  allContests {\n containsPremium \n title \n startTime}}"}
-        #{\n    containsPremium\n    title\n    cardImg\n    titleSlug\n    description\n    startTime\n    duration\n    originStartTime\n    isVirtual\n    company {\n      watermark\n      __typename\n    }\n    __typename\n  }\n}\n"
+        #{\n    containsPremium\n    title\n    cardImg\n    titleSlug\n    description\n    startTime\n    duration\n    originStartTime\n    isVirtual\n    company {\n      watermark\n      \n    }\n    \n  }\n}\n"
         result = requests.post(web,json=data)
         json_result = json.loads(result.text)
         # print(json_result)
